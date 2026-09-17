@@ -35,7 +35,7 @@ Ce projet est un projet web autonome (*Single Page Application*). Aucun framewor
 ### Option 1 : Utilisation directe (Local)
 1. Clonez ce dépôt GitHub :
    ```bash
-   git clone [https://github.com/votre-pseudo/wordzap.git](https://github.com/votre-pseudo/wordzap.git)
+   git clone [https://github.com/Franckemery/WordZap.git](https://github.com/Franckemery/WordZap.git)
 
 Ouvrez le fichier index.html directement dans votre navigateur web.
 
