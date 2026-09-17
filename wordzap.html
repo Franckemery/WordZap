@@ -1,0 +1,1841 @@
+<!DOCTYPE html>
+<html lang="fr" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WordZap - Speed Typing Game</title>
+
+  <!-- Meta tags PWA & iOS -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="WordZap">
+  <meta name="theme-color" content="#020617">
+
+  <!-- Favicon & Apple Touch Icon -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><defs><linearGradient id='bg' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' stop-color='%230f172a'/><stop offset='50%' stop-color='%231e1b4b'/><stop offset='100%' stop-color='%23020617'/></linearGradient><linearGradient id='zap' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' stop-color='%23f43f5e'/><stop offset='50%' stop-color='%23fb7185'/><stop offset='100%' stop-color='%23fbbf24'/></linearGradient></defs><rect width='512' height='512' rx='110' fill='url(%23bg)'/><path d='M280 40 L90 280 H250 L230 472 L420 232 H260 Z' fill='url(%23zap)'/></svg>">
+  <link rel="apple-touch-icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><defs><linearGradient id='bg' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' stop-color='%230f172a'/><stop offset='50%' stop-color='%231e1b4b'/><stop offset='100%' stop-color='%23020617'/></linearGradient><linearGradient id='zap' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' stop-color='%23f43f5e'/><stop offset='50%' stop-color='%23fb7185'/><stop offset='100%' stop-color='%23fbbf24'/></linearGradient></defs><rect width='512' height='512' rx='110' fill='url(%23bg)'/><path d='M280 40 L90 280 H250 L230 472 L420 232 H260 Z' fill='url(%23zap)'/></svg>">
+
+  <!-- Web App Manifest en Data URI -->
+  <link rel="manifest" href='data:application/manifest+json,{"name":"WordZap - Speed Typing Game","short_name":"WordZap","description":"Tranchez les mots à toute vitesse !","start_url":".","display":"standalone","background_color":"%23020617","theme_color":"%23f43f5e","icons":[{"src":"data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 512 512\"><defs><linearGradient id=\"bg\" x1=\"0%\" y1=\"0%\" x2=\"100%\" y2=\"100%\"><stop offset=\"0%\" stop-color=\"%230f172a\"/><stop offset=\"50%\" stop-color=\"%231e1b4b\"/><stop offset=\"100%\" stop-color=\"%23020617\"/></linearGradient><linearGradient id=\"zap\" x1=\"0%\" y1=\"0%\" x2=\"100%\" y2=\"100%\"><stop offset=\"0%\" stop-color=\"%23f43f5e\"/><stop offset=\"50%\" stop-color=\"%23fb7185\"/><stop offset=\"100%\" stop-color=\"%23fbbf24\"/></linearGradient></defs><rect width=\"512\" height=\"512\" rx=\"110\" fill=\"url(%23bg)\"/><path d=\"M280 40 L90 280 H250 L230 472 L420 232 H260 Z\" fill=\"url(%23zap)\"/></svg>","sizes":"512x512","type":"image/svg+xml","purpose":"any maskable"}]}'>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-8px); }
+      40%, 80% { transform: translateX(8px); }
+    }
+    .shake { animation: shake 0.3s ease-in-out; }
+
+    @keyframes shimmer {
+      0% { transform: translateX(-150%) rotate(25deg); }
+      100% { transform: translateX(250%) rotate(25deg); }
+    }
+    @keyframes pulseGlow {
+      0%, 100% { opacity: 0.35; transform: scale(1); filter: blur(60px); }
+      50% { opacity: 0.65; transform: scale(1.15); filter: blur(70px); }
+    }
+
+    .shimmer-effect::after {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 50%;
+      height: 200%;
+      background: linear-gradient(
+        90deg,
+        rgba(255,255,255,0) 0%,
+        rgba(255, 255, 255, 0.25) 50%,
+        rgba(255,255,255,0) 100%
+      );
+      transform: rotate(25deg);
+      pointer-events: none;
+      animation: shimmer 4s infinite ease-in-out;
+    }
+
+    .glow-aura-pink { animation: pulseGlow 6s infinite ease-in-out; }
+    .glow-aura-indigo { animation: pulseGlow 8s infinite ease-in-out alternate; }
+
+    .zap-flash {
+      box-shadow: 0 0 35px var(--accent-glow, rgba(244, 63, 94, 0.6)), 0 0 70px rgba(129, 140, 248, 0.4);
+    }
+
+    /* Variables de thèmes */
+    body.theme-neon {
+      --bg-color: #020617;
+      --accent-color: #f43f5e;
+      --accent-glow: rgba(244, 63, 94, 0.6);
+      --secondary-color: #818cf8;
+    }
+    body.theme-cyberpunk {
+      --bg-color: #0d0d00;
+      --accent-color: #eab308;
+      --accent-glow: rgba(234, 179, 8, 0.6);
+      --secondary-color: #06b6d4;
+    }
+    body.theme-matrix {
+      --bg-color: #021208;
+      --accent-color: #22c55e;
+      --accent-glow: rgba(34, 197, 94, 0.6);
+      --secondary-color: #10b981;
+    }
+    body.theme-synthwave {
+      --bg-color: #0f051d;
+      --accent-color: #d946ef;
+      --accent-glow: rgba(217, 70, 239, 0.6);
+      --secondary-color: #f97316;
+    }
+
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
+</head>
+<body id="body-root" class="theme-neon bg-slate-950 text-slate-100 min-h-screen font-sans flex flex-col justify-between select-none relative overflow-x-hidden transition-colors duration-500">
+
+  <!-- Arrière-plan d'éclats et de spots lumineux -->
+  <div id="glow-bg-1" class="fixed top-1/4 -left-20 w-96 h-96 bg-rose-600/30 rounded-full glow-aura-pink pointer-events-none z-0 transition-colors duration-500"></div>
+  <div id="glow-bg-2" class="fixed bottom-1/4 -right-20 w-96 h-96 bg-indigo-600/30 rounded-full glow-aura-indigo pointer-events-none z-0 transition-colors duration-500"></div>
+  <div class="fixed top-2/3 left-1/3 w-80 h-80 bg-amber-500/15 rounded-full blur-3xl pointer-events-none z-0"></div>
+
+  <canvas id="particle-canvas" class="fixed inset-0 pointer-events-none z-0"></canvas>
+
+  <div class="relative z-10 max-w-4xl mx-auto w-full px-4 py-6 flex flex-col min-h-screen justify-between">
+
+    <header class="flex items-center justify-between bg-slate-900/80 backdrop-blur border border-slate-800 p-4 rounded-2xl shadow-xl">
+      <!-- Logo WordZap -->
+      <div class="flex items-center gap-3 cursor-pointer" onclick="returnToLobby()">
+        <div class="relative w-11 h-11 flex items-center justify-center bg-rose-500/20 border border-rose-500/50 rounded-xl shadow-[0_0_15px_rgba(244,63,94,0.4)]">
+          <svg class="w-8 h-8 text-rose-500 filter drop-shadow-[0_0_12px_rgba(244,63,94,1)]" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M13 2L3 14h7v8l10-12h-7L13 2z"/>
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-2xl font-black tracking-wider bg-gradient-to-r from-rose-500 via-rose-400 to-amber-400 bg-clip-text text-transparent drop-shadow-[0_0_10px_rgba(244,63,94,0.3)]">
+            WORDZAP
+          </h1>
+          <p class="text-[10px] uppercase font-bold tracking-widest text-slate-400">Tranchez les mots</p>
+        </div>
+      </div>
+
+      <!-- Action Buttons & Theme Selector -->
+      <div class="flex items-center gap-2">
+        <!-- Badge Statut Connexion / Cache -->
+        <div id="network-status-badge" class="px-2.5 py-1.5 rounded-xl bg-slate-800 border border-slate-700 text-[11px] font-bold flex items-center gap-1.5 text-slate-300">
+          <i id="network-icon" class="fa-solid fa-wifi text-emerald-400"></i>
+          <span id="network-text" class="hidden md:inline">En ligne</span>
+        </div>
+
+        <!-- Bouton d'installation de l'application -->
+        <button id="pwa-install-btn" onclick="triggerPwaInstall()" title="Installer sur l'écran d'accueil" class="hidden p-2.5 rounded-xl bg-gradient-to-r from-rose-600 to-amber-500 text-white border border-rose-400/40 hover:opacity-90 transition-all active:scale-95 flex items-center gap-1.5 shadow-[0_0_12px_rgba(244,63,94,0.4)]">
+          <i class="fa-solid fa-download animate-bounce text-xs"></i>
+          <span class="text-xs font-extrabold hidden lg:inline">Installer App</span>
+        </button>
+
+        <!-- Thème Switcher (Feature 5) -->
+        <button onclick="cycleTheme()" title="Changer le thème visuel" class="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white transition-all active:scale-95 flex items-center gap-1.5">
+          <i class="fa-solid fa-palette text-amber-400"></i>
+          <span id="theme-name" class="text-xs font-bold hidden md:inline">Neon</span>
+        </button>
+
+        <button onclick="toggleSound()" title="Activer/Désactiver le son" class="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white transition-all active:scale-95">
+          <i id="sound-icon" class="fa-solid fa-volume-high"></i>
+        </button>
+        <button onclick="showPlayerStats()" title="Statistiques" class="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white transition-all active:scale-95 flex items-center gap-2">
+          <i class="fa-solid fa-chart-column text-indigo-400"></i>
+          <span class="text-xs font-bold hidden sm:inline">Stats</span>
+        </button>
+        <button onclick="showHighScores()" title="Meilleurs Scores" class="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white transition-all active:scale-95 flex items-center gap-2">
+          <i class="fa-solid fa-trophy text-amber-400"></i>
+          <span class="text-xs font-bold hidden sm:inline">Top 5</span>
+        </button>
+      </div>
+    </header>
+
+    <div id="resume-banner" class="hidden my-4 bg-gradient-to-r from-indigo-900/80 to-slate-900/80 border border-indigo-500/40 p-4 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4 shadow-lg backdrop-blur">
+      <div class="flex items-center gap-3">
+        <i class="fa-solid fa-clock-rotate-left text-2xl text-indigo-400 animate-pulse"></i>
+        <div>
+          <p class="text-sm font-bold text-white">Partie interrompue détectée</p>
+          <p id="resume-info" class="text-xs text-slate-300"></p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 w-full sm:w-auto">
+        <button onclick="resumeGame()" class="flex-1 sm:flex-none px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-xl shadow transition-all active:scale-95">
+          <i class="fa-solid fa-play mr-1.5"></i> Reprendre
+        </button>
+        <button onclick="discardSavedGame()" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 font-semibold text-xs rounded-xl transition-all">
+          Ignorer
+        </button>
+      </div>
+    </div>
+
+    <main id="lobby-screen" class="my-auto py-6 flex flex-col items-center text-center">
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-semibold mb-4">
+        <i class="fa-solid fa-bolt"></i> Vitesse fulgurante & précision tranchante
+      </div>
+
+      <!-- Banner si première connexion requise hors-ligne -->
+      <div id="first-load-offline-alert" class="hidden mb-6 w-full max-w-xl p-4 bg-amber-500/10 border border-amber-500/40 rounded-2xl text-amber-300 text-xs text-left flex items-start gap-3 backdrop-blur shadow-lg">
+        <i class="fa-solid fa-wifi-slash text-xl text-amber-400 mt-0.5"></i>
+        <div>
+          <p class="font-extrabold text-sm text-amber-200">Connexion Internet requise pour le 1er chargement</p>
+          <p class="mt-1 opacity-90">Pour jouer hors-ligne ultérieurement, vous devez vous connecter une première fois à Internet afin de télécharger le dictionnaire complet de mots.</p>
+        </div>
+      </div>
+
+      <h2 class="text-3xl sm:text-5xl font-black text-white mb-2 tracking-tight">
+        Testez votre vitesse de frappe
+      </h2>
+      <p class="text-slate-400 max-w-md mx-auto text-xs sm:text-sm mb-6">
+        Choisissez votre mode, personnalisez la longueur des mots et utilisez vos Power-ups pour battre tous les records !
+      </p>
+
+      <!-- Mode de jeu (Feature 2) -->
+      <div class="w-full max-w-xl mb-4 text-left">
+        <label class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5 block">1. Mode de Jeu</label>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          <button id="mode-classic" onclick="setGameMode('classic')" class="mode-btn p-3 rounded-xl border border-rose-500/50 bg-rose-600 text-white font-bold text-xs flex flex-col items-center gap-1 transition-all">
+            <i class="fa-solid fa-heart text-lg"></i>
+            <span>Classique</span>
+            <span class="text-[9px] font-normal opacity-80">5 Vies</span>
+          </button>
+          <button id="mode-sprint" onclick="setGameMode('sprint')" class="mode-btn p-3 rounded-xl border border-slate-700 bg-slate-800 text-slate-300 hover:bg-slate-700 font-bold text-xs flex flex-col items-center gap-1 transition-all">
+            <i class="fa-solid fa-stopwatch text-lg text-amber-400"></i>
+            <span>Sprint 60s</span>
+            <span class="text-[9px] font-normal opacity-80">Vitesse max</span>
+          </button>
+          <button id="mode-sudden" onclick="setGameMode('sudden')" class="mode-btn p-3 rounded-xl border border-slate-700 bg-slate-800 text-slate-300 hover:bg-slate-700 font-bold text-xs flex flex-col items-center gap-1 transition-all">
+            <i class="fa-solid fa-skull text-lg text-rose-400"></i>
+            <span>Mort Subite</span>
+            <span class="text-[9px] font-normal opacity-80">0 Erreur tolérée</span>
+          </button>
+          <button id="mode-zen" onclick="setGameMode('zen')" class="mode-btn p-3 rounded-xl border border-slate-700 bg-slate-800 text-slate-300 hover:bg-slate-700 font-bold text-xs flex flex-col items-center gap-1 transition-all">
+            <i class="fa-solid fa-spa text-lg text-emerald-400"></i>
+            <span>Mode Zen</span>
+            <span class="text-[9px] font-normal opacity-80">Sans fin / Relax</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Longueur des mots (Feature 3) -->
+      <div class="w-full max-w-xl mb-4 text-left">
+        <label class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5 block">2. Longueur des Mots</label>
+        <div class="grid grid-cols-4 gap-2">
+          <button id="len-all" onclick="setWordLengthFilter('all')" class="len-btn py-2 px-3 rounded-xl border border-indigo-500/50 bg-indigo-600 text-white font-semibold text-xs transition-all">
+            Tous
+          </button>
+          <button id="len-short" onclick="setWordLengthFilter('short')" class="len-btn py-2 px-3 rounded-xl border border-slate-700 bg-slate-800 text-slate-300 hover:bg-slate-700 font-semibold text-xs transition-all">
+            Courts (2-4)
+          </button>
+          <button id="len-medium" onclick="setWordLengthFilter('medium')" class="len-btn py-2 px-3 rounded-xl border border-slate-700 bg-slate-800 text-slate-300 hover:bg-slate-700 font-semibold text-xs transition-all">
+            Moyens (5-7)
+          </button>
+          <button id="len-long" onclick="setWordLengthFilter('long')" class="len-btn py-2 px-3 rounded-xl border border-slate-700 bg-slate-800 text-slate-300 hover:bg-slate-700 font-semibold text-xs transition-all">
+            Longs (8+)
+          </button>
+        </div>
+      </div>
+
+      <!-- Niveau de Difficulté -->
+      <div class="w-full max-w-xl mb-6 text-left">
+        <label class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5 block">3. Difficulté</label>
+        <div class="flex items-center gap-2 bg-slate-900/90 border border-slate-800 p-1.5 rounded-2xl">
+          <button id="diff-easy" onclick="setDifficulty('easy')" class="diff-btn flex-1 py-2 px-3 rounded-xl font-semibold text-xs border border-slate-700 bg-slate-800 text-slate-300 transition-all">
+            Facile
+          </button>
+          <button id="diff-medium" onclick="setDifficulty('medium')" class="diff-btn flex-1 py-2 px-3 rounded-xl font-semibold text-xs border border-indigo-500/50 bg-indigo-600 text-white transition-all">
+            Moyen
+          </button>
+          <button id="diff-hard" onclick="setDifficulty('hard')" class="diff-btn flex-1 py-2 px-3 rounded-xl font-semibold text-xs border border-slate-700 bg-slate-800 text-slate-300 transition-all">
+            Difficile
+          </button>
+        </div>
+      </div>
+
+      <!-- Dictionary Status Indicator -->
+      <div class="mb-6 flex items-center justify-center gap-2 text-xs text-slate-400">
+        <i id="dico-icon" class="fa-solid fa-spinner fa-spin text-indigo-400"></i>
+        <span id="dico-status">Chargement du dictionnaire...</span>
+        <button id="btn-redownload-dico" onclick="forceReloadDictionary()" title="Re-télécharger le dictionnaire" class="hidden ml-2 text-[10px] underline text-indigo-400 hover:text-indigo-300">
+          <i class="fa-solid fa-arrows-rotate"></i> Actualiser cache
+        </button>
+      </div>
+
+      <!-- Play Button -->
+      <button id="btn-start-game" onclick="startGame()" class="group relative overflow-hidden shimmer-effect px-8 py-4 bg-gradient-to-r from-rose-600 via-rose-500 to-amber-500 hover:from-rose-500 hover:to-amber-400 text-white font-extrabold text-lg rounded-2xl shadow-[0_0_25px_rgba(244,63,94,0.5)] hover:shadow-[0_0_35px_rgba(244,63,94,0.8)] transition-all transform hover:-translate-y-0.5 active:translate-y-0 active:scale-95 flex items-center gap-3">
+        <i class="fa-solid fa-bolt text-amber-300 group-hover:scale-125 group-hover:rotate-12 transition-transform filter drop-shadow-[0_0_8px_rgba(252,211,77,0.9)]"></i>
+        <span>LANCER LA PARTIE</span>
+      </button>
+    </main>
+
+    <main id="game-screen" class="hidden my-auto py-4 flex flex-col items-center">
+      <!-- Game Top Stats Bar -->
+      <div class="w-full max-w-2xl bg-slate-900/90 border border-slate-800 p-4 rounded-2xl mb-4 flex items-center justify-between shadow-xl">
+        <!-- Vies / Mode Badge -->
+        <div class="flex items-center gap-2">
+          <span id="lives-label" class="text-xs uppercase font-bold text-slate-400">Vies:</span>
+          <div id="lives-container" class="font-bold text-xl text-rose-500 filter drop-shadow-[0_0_8px_rgba(244,63,94,0.8)]">5❤️</div>
+        </div>
+
+        <!-- Combo Badge -->
+        <div id="combo-badge" class="opacity-0 transition-opacity flex items-center gap-1 bg-amber-500/20 border border-amber-500/40 px-2.5 py-1 rounded-lg text-amber-400 text-xs font-bold shadow-[0_0_12px_rgba(245,158,11,0.3)]">
+          <i class="fa-solid fa-fire animate-bounce"></i> Combo x<span id="combo-num">1</span>
+        </div>
+
+        <!-- Active Mode Display -->
+        <div id="mode-display-tag" class="hidden sm:inline-flex px-2.5 py-1 rounded-lg bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 text-xs font-bold">
+          Classique
+        </div>
+
+        <!-- Timer -->
+        <div class="text-center">
+          <span class="text-[10px] uppercase font-bold text-slate-400 block">Temps</span>
+          <span id="timer-val" class="font-mono font-bold text-lg text-slate-200">00:00</span>
+        </div>
+
+        <!-- Score & WPM -->
+        <div class="flex items-center gap-4 text-right">
+          <div>
+            <span class="text-[10px] uppercase font-bold text-slate-400 block">Score</span>
+            <span id="score-val" class="font-extrabold text-lg text-emerald-400 drop-shadow-[0_0_6px_rgba(52,211,153,0.5)]">0</span>
+          </div>
+          <div>
+            <span class="text-[10px] uppercase font-bold text-slate-400 block">WPM</span>
+            <span id="wpm-val" class="font-extrabold text-lg text-indigo-400 drop-shadow-[0_0_6px_rgba(129,140,248,0.5)]">0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Power-Ups Bar (Feature 4) -->
+      <div class="w-full max-w-2xl bg-slate-900/70 border border-slate-800/80 p-2.5 rounded-2xl mb-4 flex items-center justify-around gap-2 shadow-lg backdrop-blur">
+        <button onclick="usePowerUp('shield')" id="pw-shield" class="p-2 px-3 rounded-xl bg-slate-800 border border-slate-700 text-slate-400 flex items-center gap-2 text-xs font-bold hover:bg-slate-700 transition-all active:scale-95 disabled:opacity-40">
+          <i class="fa-solid fa-shield-halved text-cyan-400 text-sm"></i>
+          <span>Bouclier</span>
+          <span id="pw-shield-count" class="bg-cyan-500/20 text-cyan-300 text-[10px] px-1.5 py-0.5 rounded-full border border-cyan-500/30">0</span>
+        </button>
+
+        <button onclick="usePowerUp('freeze')" id="pw-freeze" class="p-2 px-3 rounded-xl bg-slate-800 border border-slate-700 text-slate-400 flex items-center gap-2 text-xs font-bold hover:bg-slate-700 transition-all active:scale-95 disabled:opacity-40">
+          <i class="fa-solid fa-snowflake text-indigo-400 text-sm"></i>
+          <span>Gel 5s</span>
+          <span id="pw-freeze-count" class="bg-indigo-500/20 text-indigo-300 text-[10px] px-1.5 py-0.5 rounded-full border border-indigo-500/30">0</span>
+        </button>
+
+        <button onclick="usePowerUp('bomb')" id="pw-bomb" class="p-2 px-3 rounded-xl bg-slate-800 border border-slate-700 text-slate-400 flex items-center gap-2 text-xs font-bold hover:bg-slate-700 transition-all active:scale-95 disabled:opacity-40">
+          <i class="fa-solid fa-bomb text-rose-400 text-sm"></i>
+          <span>Zap Bomb</span>
+          <span id="pw-bomb-count" class="bg-rose-500/20 text-rose-300 text-[10px] px-1.5 py-0.5 rounded-full border border-rose-500/30">0</span>
+        </button>
+
+        <button onclick="usePowerUp('double')" id="pw-double" class="p-2 px-3 rounded-xl bg-slate-800 border border-slate-700 text-slate-400 flex items-center gap-2 text-xs font-bold hover:bg-slate-700 transition-all active:scale-95 disabled:opacity-40">
+          <i class="fa-solid fa-bolt text-amber-400 text-sm"></i>
+          <span>2x Score</span>
+          <span id="pw-double-count" class="bg-amber-500/20 text-amber-300 text-[10px] px-1.5 py-0.5 rounded-full border border-amber-500/30">0</span>
+        </button>
+      </div>
+
+      <!-- Word Display Card avec effet Shimmer et Glow -->
+      <div id="word-card" onclick="document.getElementById('jeu-input').focus()" class="w-full max-w-2xl bg-slate-900/90 border border-slate-800 hover:border-slate-700 transition-all duration-300 p-8 sm:p-12 rounded-3xl shadow-[0_0_30px_rgba(15,23,42,0.8)] flex flex-col items-center justify-center min-h-[220px] cursor-pointer relative overflow-hidden group shimmer-effect">
+        <!-- Laser effect line with high glow -->
+        <div class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-transparent via-rose-500 to-transparent opacity-80 shadow-[0_0_15px_rgba(244,63,94,1)]"></div>
+
+        <!-- Active Powerup Status Indicator -->
+        <div id="active-powerup-status" class="hidden absolute top-3 right-4 flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-full bg-slate-800/90 border border-slate-700 shadow-md"></div>
+
+        <div id="mot-container" class="text-3xl sm:text-5xl font-black tracking-wide text-slate-200 my-4 text-center break-all select-none drop-shadow-[0_0_12px_rgba(255,255,255,0.2)]">
+          <!-- Mot généré ici -->
+        </div>
+
+        <!-- Hidden Typing Input -->
+        <input id="jeu-input" type="text" autocomplete="off" spellcheck="false" class="opacity-0 absolute pointer-events-auto h-full w-full inset-0 cursor-default" autofocus />
+
+        <p class="text-xs text-slate-400 mt-4 font-medium flex items-center gap-1.5">
+          <i class="fa-solid fa-keyboard text-slate-400"></i> Cliquez ici ou commencez simplement à taper
+        </p>
+      </div>
+
+      <!-- Quit Game Button -->
+      <button onclick="abandonGame()" class="mt-6 text-xs font-bold text-slate-400 hover:text-rose-400 transition-colors flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900/50 border border-slate-800">
+        <i class="fa-solid fa-door-open"></i> Quitter la partie (sauvegarder)
+      </button>
+    </main>
+
+    <footer class="text-center text-xs text-slate-400 py-4">
+      WordZap &copy; 2026 — Entraînement au clavier ultra-rapide<br>
+      By Franck Emery
+    </footer>
+  </div>
+
+  <!-- Game Over Modal -->
+  <div id="gameover-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl text-center transform transition-all">
+      <div id="gameover-icon-box" class="w-16 h-16 bg-rose-500/10 border border-rose-500/30 text-rose-500 rounded-2xl flex items-center justify-center mx-auto mb-4 text-2xl">
+        <i class="fa-solid fa-skull"></i>
+      </div>
+
+      <h3 id="gameover-title" class="text-2xl font-black text-white mb-1">PARTIE TERMINÉE !</h3>
+      <p id="gameover-reason" class="text-xs text-rose-400 mb-4 font-semibold"></p>
+
+      <div class="bg-slate-950/60 border border-slate-800 p-4 rounded-2xl mb-6">
+        <p id="final-summary" class="text-lg font-black text-amber-400 mb-3"></p>
+        <div class="grid grid-cols-2 gap-3 text-left text-xs">
+          <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800">
+            <span class="text-slate-400 block">Vitesse</span>
+            <span class="text-base font-black text-indigo-400"><span id="final-wpm">0</span> WPM</span>
+          </div>
+          <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800">
+            <span class="text-slate-400 block">Durée</span>
+            <span id="final-duration" class="text-base font-black text-white">0s</span>
+          </div>
+          <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800">
+            <span class="text-slate-400 block">Précision</span>
+            <span id="final-accuracy" class="text-base font-black text-emerald-400">100%</span>
+          </div>
+          <div class="bg-slate-900 p-2.5 rounded-xl border border-slate-800">
+            <span class="text-slate-400 block">Max Combo</span>
+            <span id="final-streak" class="text-base font-black text-amber-400">0</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex gap-3">
+        <button onclick="closeGameOver(); startGame();" class="flex-1 py-3 bg-rose-600 hover:bg-rose-500 text-white font-bold text-sm rounded-xl shadow transition-all active:scale-95">
+          Rejouer
+        </button>
+        <button onclick="closeGameOver(); returnToLobby();" class="flex-1 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-sm rounded-xl transition-all">
+          Menu
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Player Stats Modal -->
+  <div id="stats-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl transform transition-all">
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-3">
+          <div class="p-2.5 bg-indigo-500/10 border border-indigo-500/30 rounded-xl text-indigo-400">
+            <i class="fa-solid fa-chart-column text-xl"></i>
+          </div>
+          <div>
+            <h3 class="text-xl font-black text-white">Statistiques du Joueur</h3>
+            <p class="text-xs text-slate-400">Progression enregistrée localement</p>
+          </div>
+        </div>
+        <button onclick="closeStatsModal()" class="text-slate-400 hover:text-white text-lg">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- Filters: Mode & Difficulty -->
+      <div class="space-y-3 mb-6">
+        <div>
+          <span class="text-[10px] uppercase font-bold text-slate-400 block mb-1">Mode de Jeu</span>
+          <div class="grid grid-cols-5 gap-1 bg-slate-950 p-1 rounded-xl">
+            <button id="stat-mode-all" onclick="setStatsModeFilter('all')" class="stat-mode-btn py-1.5 px-1 rounded-lg text-center bg-rose-600 text-white transition-all text-[11px] font-bold">Tous</button>
+            <button id="stat-mode-classic" onclick="setStatsModeFilter('classic')" class="stat-mode-btn py-1.5 px-1 rounded-lg text-center text-slate-400 hover:text-white transition-all text-[11px] font-bold">Classique</button>
+            <button id="stat-mode-sprint" onclick="setStatsModeFilter('sprint')" class="stat-mode-btn py-1.5 px-1 rounded-lg text-center text-slate-400 hover:text-white transition-all text-[11px] font-bold">Sprint</button>
+            <button id="stat-mode-sudden" onclick="setStatsModeFilter('sudden')" class="stat-mode-btn py-1.5 px-1 rounded-lg text-center text-slate-400 hover:text-white transition-all text-[11px] font-bold">Subite</button>
+            <button id="stat-mode-zen" onclick="setStatsModeFilter('zen')" class="stat-mode-btn py-1.5 px-1 rounded-lg text-center text-slate-400 hover:text-white transition-all text-[11px] font-bold">Zen</button>
+          </div>
+        </div>
+
+        <div>
+          <span class="text-[10px] uppercase font-bold text-slate-400 block mb-1">Difficulté</span>
+          <div class="grid grid-cols-4 gap-1 bg-slate-950 p-1 rounded-xl">
+            <button id="stat-diff-all" onclick="setStatsDiffFilter('all')" class="stat-diff-btn py-1.5 px-1 rounded-lg text-center bg-indigo-600 text-white transition-all text-[11px] font-bold">Toutes</button>
+            <button id="stat-diff-easy" onclick="setStatsDiffFilter('easy')" class="stat-diff-btn py-1.5 px-1 rounded-lg text-center text-slate-400 hover:text-white transition-all text-[11px] font-bold">Facile</button>
+            <button id="stat-diff-medium" onclick="setStatsDiffFilter('medium')" class="stat-diff-btn py-1.5 px-1 rounded-lg text-center text-slate-400 hover:text-white transition-all text-[11px] font-bold">Moyen</button>
+            <button id="stat-diff-hard" onclick="setStatsDiffFilter('hard')" class="stat-diff-btn py-1.5 px-1 rounded-lg text-center text-slate-400 hover:text-white transition-all text-[11px] font-bold">Difficile</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
+        <div class="bg-slate-950/60 p-3 rounded-2xl border border-slate-800">
+          <span class="text-[10px] text-slate-400 uppercase font-bold block">Parties</span>
+          <span id="stat-games" class="text-xl font-black text-white">0</span>
+        </div>
+        <div class="bg-slate-950/60 p-3 rounded-2xl border border-slate-800">
+          <span class="text-[10px] text-slate-400 uppercase font-bold block">Mots Totaux</span>
+          <span id="stat-words" class="text-xl font-black text-emerald-400">0</span>
+        </div>
+        <div class="bg-slate-950/60 p-3 rounded-2xl border border-slate-800">
+          <span class="text-[10px] text-slate-400 uppercase font-bold block">Max WPM</span>
+          <span id="stat-wpm" class="text-xl font-black text-indigo-400">0</span>
+        </div>
+        <div class="bg-slate-950/60 p-3 rounded-2xl border border-slate-800">
+          <span class="text-[10px] text-slate-400 uppercase font-bold block">Tps Moyen / Partie</span>
+          <span id="stat-avg-time" class="text-xl font-black text-cyan-400">0s</span>
+        </div>
+        <div class="bg-slate-950/60 p-3 rounded-2xl border border-slate-800">
+          <span class="text-[10px] text-slate-400 uppercase font-bold block">Précision</span>
+          <span id="stat-accuracy" class="text-xl font-black text-amber-400">100%</span>
+        </div>
+        <div class="bg-slate-950/60 p-3 rounded-2xl border border-slate-800">
+          <span class="text-[10px] text-slate-400 uppercase font-bold block">Meilleur Score</span>
+          <span id="stat-best-score" class="text-xl font-black text-rose-400">0</span>
+        </div>
+        <div class="bg-slate-950/60 p-3 rounded-2xl border border-slate-800 col-span-2 sm:col-span-3">
+          <span class="text-[10px] text-slate-400 uppercase font-bold block">Max Combo</span>
+          <span id="stat-max-streak" class="text-xl font-black text-amber-400">0 🔥</span>
+        </div>
+      </div>
+
+      <div class="flex justify-between items-center pt-2 border-t border-slate-800">
+        <button onclick="resetPlayerStats()" class="text-xs text-rose-400 hover:text-rose-300 font-semibold flex items-center gap-1">
+          <i class="fa-solid fa-trash-can"></i> Réinitialiser les données
+        </button>
+        <button onclick="closeStatsModal()" class="px-5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs rounded-xl">
+          Fermer
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Highscores Modal -->
+  <div id="highscores-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl transform transition-all">
+      <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center gap-3">
+          <div class="p-2.5 bg-amber-500/10 border border-amber-500/30 rounded-xl text-amber-400">
+            <i class="fa-solid fa-trophy text-xl"></i>
+          </div>
+          <div>
+            <h3 class="text-xl font-black text-white">Top 5 Meilleurs Scores</h3>
+            <p class="text-xs text-slate-400">Vos meilleures performances</p>
+          </div>
+        </div>
+        <button onclick="closeHighScores()" class="text-slate-400 hover:text-white text-lg">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div id="highscores-list" class="space-y-2 mb-6 max-h-60 overflow-y-auto no-scrollbar">
+        <!-- Rempli en JS -->
+      </div>
+
+      <div class="flex justify-between items-center pt-2 border-t border-slate-800">
+        <button onclick="clearScores()" class="text-xs text-rose-400 hover:text-rose-300 font-semibold flex items-center gap-1">
+          <i class="fa-solid fa-eraser"></i> Effacer l'historique
+        </button>
+        <button onclick="closeHighScores()" class="px-5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs rounded-xl">
+          Fermer
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal d'installation PWA / Écran d'accueil -->
+  <div id="pwa-guide-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl text-center transform transition-all">
+      <div class="w-16 h-16 bg-rose-500/10 border border-rose-500/30 text-rose-500 rounded-2xl flex items-center justify-center mx-auto mb-4 text-3xl shadow-[0_0_20px_rgba(244,63,94,0.3)]">
+        <i class="fa-solid fa-mobile-screen-button"></i>
+      </div>
+      <h3 class="text-xl font-black text-white mb-2">Ajouter WordZap à l'écran d'accueil</h3>
+      <p class="text-xs text-slate-300 mb-6 leading-relaxed">
+        Jouez en plein écran sans barre de navigateur et accédez à WordZap directement depuis votre écran d'accueil comme une application native !
+      </p>
+
+      <div id="pwa-guide-instructions" class="bg-slate-950/70 border border-slate-800 p-4 rounded-2xl mb-6 text-left text-xs space-y-3">
+        <div class="flex items-start gap-3">
+          <span class="w-6 h-6 rounded-full bg-rose-500/20 text-rose-400 font-extrabold flex items-center justify-center text-xs shrink-0">1</span>
+          <p id="pwa-step-1" class="text-slate-300">Appuyez sur le bouton <strong>Partager</strong> <i class="fa-solid fa-share-from-square text-indigo-400"></i> (ou le menu <strong>⋮</strong> sur Android).</p>
+        </div>
+        <div class="flex items-start gap-3">
+          <span class="w-6 h-6 rounded-full bg-rose-500/20 text-rose-400 font-extrabold flex items-center justify-center text-xs shrink-0">2</span>
+          <p id="pwa-step-2" class="text-slate-300">Sélectionnez <strong>« Sur l'écran d'accueil »</strong> <i class="fa-solid fa-square-plus text-amber-400"></i> ou <strong>« Installer l'application »</strong>.</p>
+        </div>
+      </div>
+
+      <button onclick="closePwaGuide()" class="w-full py-3 bg-gradient-to-r from-rose-600 to-amber-500 text-white font-bold text-sm rounded-xl shadow transition-all active:scale-95">
+        Compris !
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // System Themes (Feature 5)
+    const themes = [
+      { id: 'theme-neon', name: 'Neon', primary: '#f43f5e', secondary: '#818cf8', bg1: 'bg-rose-600/30', bg2: 'bg-indigo-600/30' },
+      { id: 'theme-cyberpunk', name: 'Cyberpunk', primary: '#eab308', secondary: '#06b6d4', bg1: 'bg-amber-500/30', bg2: 'bg-cyan-500/30' },
+      { id: 'theme-matrix', name: 'Matrix', primary: '#22c55e', secondary: '#10b981', bg1: 'bg-green-600/30', bg2: 'bg-emerald-600/30' },
+      { id: 'theme-synthwave', name: 'Synthwave', primary: '#d946ef', secondary: '#f97316', bg1: 'bg-fuchsia-600/30', bg2: 'bg-orange-600/30' }
+    ];
+    let currentThemeIndex = 0;
+
+    function cycleTheme() {
+      currentThemeIndex = (currentThemeIndex + 1) % themes.length;
+      applyTheme(themes[currentThemeIndex]);
+    }
+
+    function applyTheme(t) {
+      const root = document.getElementById('body-root');
+      root.className = root.className.replace(/theme-\w+/g, t.id);
+      document.getElementById('theme-name').innerText = t.name;
+
+      const bg1 = document.getElementById('glow-bg-1');
+      const bg2 = document.getElementById('glow-bg-2');
+      if (bg1) bg1.className = `fixed top-1/4 -left-20 w-96 h-96 ${t.bg1} rounded-full glow-aura-pink pointer-events-none z-0 transition-colors duration-500`;
+      if (bg2) bg2.className = `fixed bottom-1/4 -right-20 w-96 h-96 ${t.bg2} rounded-full glow-aura-indigo pointer-events-none z-0 transition-colors duration-500`;
+
+      localStorage.setItem('wordzap_theme', currentThemeIndex);
+    }
+
+    // Audio Synth Context
+    let soundEnabled = true;
+    let audioCtx = null;
+
+    function getAudioContext() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      return audioCtx;
+    }
+
+    function toggleSound() {
+      soundEnabled = !soundEnabled;
+      localStorage.setItem('wordzap_sound', soundEnabled);
+      updateSoundIcon();
+    }
+
+    function updateSoundIcon() {
+      const icon = document.getElementById('sound-icon');
+      if (icon) {
+        icon.className = soundEnabled ? 'fa-solid fa-volume-high' : 'fa-solid fa-volume-xmark text-rose-400';
+      }
+    }
+
+    const wordBanks = {
+      easy: {
+        nouns: ["chat", "chien", "pain", "main", "jour", "nuit", "loup", "mer", "vent", "eau", "feu", "bois", "fleur", "ciel", "monde", "livre", "table", "porte", "route", "ville"],
+        adj: ["grand", "petit", "beau", "bon", "haut", "bas", "fort", "doux", "frais", "noir", "blanc", "rouge", "bleu", "vert", "jaune", "court", "long", "jeune", "vieux", "sage"],
+        verbs: ["jouer", "parler", "manger", "marcher", "courir", "sauter", "aimer", "lire", "écrire", "voir", "faire", "dire", "aller", "venir", "avoir", "être", "pouvoir", "vouloir", "savoir", "prendre"],
+        general: ["mot", "zap", "vite", "jeux", "code", "page", "mode", "nom", "plan", "zone"]
+      },
+      medium: {
+        nouns: ["maison", "jardin", "soleil", "lumière", "musique", "voyage", "bonheur", "sourire", "travail", "oiseau", "nature", "château", "fenêtre", "bouteille", "couleur", "famille", "histoire", "langue", "pensées", "succès"],
+        adj: ["rapide", "solide", "sombre", "claire", "propre", "triste", "joyeux", "simple", "difficile", "calme", "chaud", "froid", "léger", "lourd", "ancien", "moderne", "faible", "gratuit", "subtile"],
+        verbs: ["étudier", "penser", "écouter", "chanter", "danser", "dessiner", "trouver", "gagner", "garder", "perdre", "partir", "sortir", "dormir", "ouvrir", "fermer", "réussir", "choisir", "comprendre", "devenir", "changer"],
+        general: ["vitesse", "précision", "clavier", "saisie", "chrono", "défi", "niveau", "combo", "score", "record"]
+      },
+      hard: {
+        nouns: ["développement", "environnement", "intelligence", "communication", "ordinateur", "expérience", "technologie", "connaissance", "extraordinaire", "magnifique", "qualification", "responsabilité", "transformation", "génération"],
+        adj: ["incroyable", "fantastique", "impressionnant", "remarquable", "exceptionnel", "indispensable", "automatique", "instantané", "spectaculaire", "incomparable"],
+        verbs: ["synchroniser", "transformer", "expérimenter", "perfectionner", "accomplir", "développer", "construire", "encourager", "personnaliser", "révolutionner"],
+        general: ["performance", "difficulté", "championnat", "spécification", "architecture", "optimisation"]
+      }
+    };
+    const usedWords = new Set();
+    let categoryTurn = 0;
+
+    function playSound(type) {
+      if (!soundEnabled) return;
+      try {
+        const ctx = getAudioContext();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        const now = ctx.currentTime;
+
+        if (type === 'key') {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(300 + Math.random() * 200, now);
+          gain.gain.setValueAtTime(0.05, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+          osc.start(now);
+          osc.stop(now + 0.05);
+        } else if (type === 'success') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(523.25, now);
+          osc.frequency.exponentialRampToValueAtTime(659.25, now + 0.1);
+          gain.gain.setValueAtTime(0.1, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+          osc.start(now);
+          osc.stop(now + 0.15);
+        } else if (type === 'error') {
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(150, now);
+          osc.frequency.linearRampToValueAtTime(80, now + 0.15);
+          gain.gain.setValueAtTime(0.15, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+          osc.start(now);
+          osc.stop(now + 0.2);
+        } else if (type === 'powerup') {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(400, now);
+          osc.frequency.exponentialRampToValueAtTime(880, now + 0.2);
+          gain.gain.setValueAtTime(0.12, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+          osc.start(now);
+          osc.stop(now + 0.25);
+        } else if (type === 'gameover') {
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(220, now);
+          osc.frequency.linearRampToValueAtTime(110, now + 0.4);
+          gain.gain.setValueAtTime(0.15, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+          osc.start(now);
+          osc.stop(now + 0.45);
+        }
+      } catch (e) {
+        console.warn('Audio play error:', e);
+      }
+    }
+
+    async function loadFullDictionary(forceOnline = false) {
+      const statusElem = document.getElementById('dico-status');
+      const iconElem = document.getElementById('dico-icon');
+      const startBtn = document.getElementById('btn-start-game');
+      const alertBanner = document.getElementById('first-load-offline-alert');
+      const redownloadBtn = document.getElementById('btn-redownload-dico');
+
+      const cachedData = localStorage.getItem('wordzap_dictionary_cache_v1');
+      
+      if (cachedData && !forceOnline) {
+        try {
+          const parsed = JSON.parse(cachedData);
+          wordBanks.easy = parsed.easy || wordBanks.easy;
+          wordBanks.medium = parsed.medium || wordBanks.medium;
+          wordBanks.hard = parsed.hard || wordBanks.hard;
+
+          const totalWords = Object.values(wordBanks).reduce((acc, d) => acc + (d.nouns?.length || 0) + (d.adj?.length || 0) + (d.verbs?.length || 0) + (d.general?.length || 0), 0);
+
+          if (statusElem) {
+            statusElem.innerText = `Dictionnaire prêt (Cache local) : ${totalWords.toLocaleString('fr-FR')} mots disponibles ⚡`;
+            statusElem.classList.add('text-emerald-400');
+          }
+          if (iconElem) {
+            iconElem.className = 'fa-solid fa-database text-emerald-400';
+          }
+          if (startBtn) startBtn.disabled = false;
+          if (alertBanner) alertBanner.classList.add('hidden');
+          if (redownloadBtn) redownloadBtn.classList.remove('hidden');
+          return;
+        } catch (e) {
+          console.warn('Erreur lors de la lecture du cache, re-téléchargement nécessaire.', e);
+        }
+      }
+
+      if (!navigator.onLine && !cachedData) {
+        if (statusElem) {
+          statusElem.innerText = "Hors-ligne : Premier chargement impossible sans réseau.";
+          statusElem.classList.add('text-rose-400');
+        }
+        if (iconElem) {
+          iconElem.className = 'fa-solid fa-wifi-slash text-rose-400';
+        }
+        if (alertBanner) alertBanner.classList.remove('hidden');
+        if (startBtn) startBtn.disabled = true;
+        return;
+      }
+
+      try {
+        if (statusElem) statusElem.innerText = "Téléchargement initial du dictionnaire...";
+        if (iconElem) iconElem.className = "fa-solid fa-cloud-arrow-down fa-spin text-indigo-400";
+
+        const response = await fetch('https://cdn.jsdelivr.net/gh/words/an-array-of-french-words@master/index.json');
+        if (!response.ok) throw new Error('Erreur de téléchargement');
+        const allWords = await response.json();
+
+        wordBanks.easy = { nouns: [], adj: [], verbs: [], general: [] };
+        wordBanks.medium = { nouns: [], adj: [], verbs: [], general: [] };
+        wordBanks.hard = { nouns: [], adj: [], verbs: [], general: [] };
+
+        let addedCount = 0;
+        const obscureVerbsRegex = /(assions|assiez|âmes|âtes|ussent|ussiez|issions|issiez|ussions|eriez|erais|erait|erons|erez)$/i;
+
+        allWords.forEach(w => {
+          if (typeof w !== 'string') return;
+          const clean = w.trim().toLowerCase();
+          
+          if (!/^[a-zàâäéèêëîïôöùûüçæœ\-]+$/i.test(clean)) return;
+          if (clean.length < 2 || clean.length > 18) return;
+          if (obscureVerbsRegex.test(clean)) return;
+
+          let diff = 'medium';
+          if (clean.length <= 5) diff = 'easy';
+          else if (clean.length >= 10) diff = 'hard';
+
+          if (clean.endsWith('er') || clean.endsWith('ir') || clean.endsWith('ez') || clean.endsWith('ons') || clean.endsWith('ait')) {
+            wordBanks[diff].verbs.push(clean);
+          } else if (clean.endsWith('ion') || clean.endsWith('ment') || clean.endsWith('eur') || clean.endsWith('ite') || clean.endsWith('age') || clean.endsWith('ence') || clean.endsWith('ance')) {
+            wordBanks[diff].nouns.push(clean);
+          } else if (clean.endsWith('ique') || clean.endsWith('able') || clean.endsWith('ible') || clean.endsWith('eux') || clean.endsWith('euse') || clean.endsWith('al') || clean.endsWith('if') || clean.endsWith('ive')) {
+            wordBanks[diff].adj.push(clean);
+          } else {
+            wordBanks[diff].general.push(clean);
+          }
+          addedCount++;
+        });
+
+        try {
+          localStorage.setItem('wordzap_dictionary_cache_v1', JSON.stringify(wordBanks));
+        } catch (storageErr) {
+          console.warn("Impossible de sauvegarder le dictionnaire complet dans le localStorage (limite dépassée)", storageErr);
+        }
+
+        if (statusElem) {
+          statusElem.innerText = `Dictionnaire enregistré localement : ${addedCount.toLocaleString('fr-FR')} mots !`;
+          statusElem.className = 'text-xs text-emerald-400 font-semibold';
+        }
+        if (iconElem) {
+          iconElem.className = 'fa-solid fa-circle-check text-emerald-400';
+        }
+        if (alertBanner) alertBanner.classList.add('hidden');
+        if (startBtn) startBtn.disabled = false;
+        if (redownloadBtn) redownloadBtn.classList.remove('hidden');
+
+      } catch (err) {
+        const totalLocal = Object.values(wordBanks).reduce((acc, d) => acc + (d.nouns?.length || 0) + (d.adj?.length || 0) + (d.verbs?.length || 0), 0);
+        if (statusElem) {
+          statusElem.innerText = `Mode Dégradé (Banque par défaut) : ${totalLocal} mots`;
+          statusElem.className = 'text-xs text-amber-400 font-semibold';
+        }
+        if (iconElem) {
+          iconElem.className = 'fa-solid fa-triangle-exclamation text-amber-400';
+        }
+        if (startBtn) startBtn.disabled = false;
+      }
+    }
+
+    function forceReloadDictionary() {
+      localStorage.removeItem('wordzap_dictionary_cache_v1');
+      loadFullDictionary(true);
+    }
+
+    function updateNetworkStatusUI() {
+      const icon = document.getElementById('network-icon');
+      const text = document.getElementById('network-text');
+      const badge = document.getElementById('network-status-badge');
+
+      if (navigator.onLine) {
+        if (icon) icon.className = 'fa-solid fa-wifi text-emerald-400';
+        if (text) text.innerText = 'En ligne';
+        if (badge) badge.className = 'px-2.5 py-1.5 rounded-xl bg-slate-800 border border-slate-700 text-[11px] font-bold flex items-center gap-1.5 text-slate-300';
+      } else {
+        if (icon) icon.className = 'fa-solid fa-plane text-amber-400';
+        if (text) text.innerText = 'Hors-ligne (Cache)';
+        if (badge) badge.className = 'px-2.5 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-[11px] font-bold flex items-center gap-1.5 text-amber-300';
+      }
+    }
+
+    function setDomText(id, text, isHtml = false) {
+      const el = document.getElementById(id);
+      if (el) {
+        if (isHtml) el.innerHTML = text;
+        else el.innerText = text;
+      }
+    }
+
+    function formatTime(seconds) {
+      const m = Math.floor(Math.abs(seconds) / 60);
+      const s = Math.abs(seconds) % 60;
+      return `${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
+    }
+
+    function renderLives() {
+      const container = document.getElementById('lives-container');
+      const label = document.getElementById('lives-label');
+      if (!container) return;
+
+      if (currentGameMode === 'zen') {
+        container.innerText = '∞';
+        if (label) label.innerText = 'Mode:';
+      } else if (currentGameMode === 'sudden') {
+        container.innerText = '1💀';
+        if (label) label.innerText = 'Vie:';
+      } else {
+        if (label) label.innerText = 'Vies:';
+        let hearts = '';
+        for (let i = 0; i < lives; i++) hearts += '❤️';
+        container.innerText = hearts || '0';
+      }
+    }
+
+    function stopTimer() {
+      if (gameTimerInterval) {
+        clearInterval(gameTimerInterval);
+        gameTimerInterval = null;
+      }
+    }
+
+    function renderWordDisplay(inputVal = '') {
+      const container = document.getElementById('mot-container');
+      if (!container) return;
+
+      let html = '';
+      const cleanInput = inputVal.toLowerCase();
+      const targetWord = currentWord.toLowerCase();
+
+      for (let i = 0; i < currentWord.length; i++) {
+        const char = currentWord[i];
+        if (i < cleanInput.length) {
+          if (cleanInput[i] === targetWord[i]) {
+            html += `<span class="text-emerald-400 drop-shadow-[0_0_10px_rgba(52,211,153,0.8)] underline decoration-emerald-400 decoration-2">${char}</span>`;
+          } else {
+            html += `<span class="text-rose-500 bg-rose-500/20 px-0.5 rounded animate-pulse">${char}</span>`;
+          }
+        } else if (i === cleanInput.length) {
+          html += `<span class="text-amber-300 border-b-2 border-amber-400 bg-amber-400/10 font-black animate-pulse">${char}</span>`;
+        } else {
+          html += `<span class="text-slate-400/80">${char}</span>`;
+        }
+      }
+      container.innerHTML = html;
+    }
+
+    function returnToLobby() {
+      saveActiveGameState();
+      isPlaying = false;
+      stopTimer();
+      document.getElementById('game-screen').classList.add('hidden');
+      document.getElementById('lobby-screen').classList.remove('hidden');
+      checkSavedGameBanner();
+    }
+
+    function abandonGame() {
+      saveActiveGameState();
+      returnToLobby();
+    }
+
+    window.addEventListener('online', () => {
+      updateNetworkStatusUI();
+      loadFullDictionary();
+    });
+
+    window.addEventListener('offline', () => {
+      updateNetworkStatusUI();
+    });
+
+    function nextWord() {
+      const currentBankObj = wordBanks[currentDifficulty];
+      if (!currentBankObj) return;
+
+      const categoriesOrder = ['nouns', 'adj', 'verbs', 'general'];
+      let selectedCategory = categoriesOrder[categoryTurn % categoriesOrder.length];
+      categoryTurn++;
+
+      let pool = currentBankObj[selectedCategory] || [];
+      if (pool.length === 0) {
+        pool = [...currentBankObj.nouns, ...currentBankObj.adj, ...currentBankObj.verbs, ...currentBankObj.general];
+      }
+
+      // Filtrer par longueur de mot (Feature 3)
+      let filteredPool = pool;
+      if (currentWordLengthFilter === 'short') {
+        filteredPool = pool.filter(w => w.length >= 2 && w.length <= 4);
+      } else if (currentWordLengthFilter === 'medium') {
+        filteredPool = pool.filter(w => w.length >= 5 && w.length <= 7);
+      } else if (currentWordLengthFilter === 'long') {
+        filteredPool = pool.filter(w => w.length >= 8);
+      }
+
+      if (filteredPool.length === 0) filteredPool = pool;
+
+      let available = filteredPool.filter(w => !usedWords.has(w));
+      if (available.length === 0) {
+        usedWords.clear();
+        available = filteredPool.length > 0 ? filteredPool : ["mot", "zap", "vitesse"];
+      }
+
+      const newWord = available[Math.floor(Math.random() * available.length)];
+      usedWords.add(newWord);
+      currentWord = newWord;
+      lastErrorLength = 0;
+
+      renderWordDisplay('');
+
+      const input = document.getElementById('jeu-input');
+      if (input) {
+        input.value = '';
+        input.focus();
+      }
+    }
+
+    // État du jeu & Configuration
+    let currentGameMode = 'classic'; // Feature 2: classic, sprint, sudden, zen
+    let currentWordLengthFilter = 'all'; // Feature 3: all, short, medium, long
+    let currentDifficulty = 'medium';
+    let currentWord = '';
+    let score = 0;
+    let streak = 0;
+    let maxStreak = 0;
+    let totalKeystrokes = 0;
+    let correctKeystrokes = 0;
+    let lives = 5;
+    let maxLives = 5;
+    let startTime = null;
+    let elapsedTimeInSeconds = 0;
+    let gameTimerInterval = null;
+    let isPlaying = false;
+    let lastErrorLength = 0;
+    let currentStatsModeFilter = 'all';
+    let currentStatsDiffFilter = 'all';
+
+    // Power-ups (Feature 4)
+    let powerUps = {
+      shield: 0,
+      freeze: 0,
+      bomb: 0,
+      double: 0
+    };
+    let isShieldActive = false;
+    let isFreezeActive = false;
+    let isDoubleScoreActive = false;
+
+    // Canvas Particles State
+    let canvas = null;
+    let ctx = null;
+    let particles = [];
+
+    // Feature 2: Mode Setters
+    function setGameMode(mode) {
+      currentGameMode = mode;
+      localStorage.setItem('wordzap_pref_mode', mode);
+      document.querySelectorAll('.mode-btn').forEach(btn => {
+        btn.className = 'mode-btn p-3 rounded-xl border border-slate-700 bg-slate-800 text-slate-300 hover:bg-slate-700 font-bold text-xs flex flex-col items-center gap-1 transition-all';
+      });
+      const activeBtn = document.getElementById(`mode-${mode}`);
+      if (activeBtn) {
+        activeBtn.className = 'mode-btn p-3 rounded-xl border border-rose-500/50 bg-rose-600 text-white font-bold text-xs flex flex-col items-center gap-1 transition-all';
+      }
+    }
+
+    // Feature 3: Word Length Filter Setters
+    function setWordLengthFilter(filter) {
+      currentWordLengthFilter = filter;
+      localStorage.setItem('wordzap_pref_length', filter);
+      document.querySelectorAll('.len-btn').forEach(btn => {
+        btn.className = 'len-btn py-2 px-3 rounded-xl border border-slate-700 bg-slate-800 text-slate-300 hover:bg-slate-700 font-semibold text-xs transition-all';
+      });
+      const activeBtn = document.getElementById(`len-${filter}`);
+      if (activeBtn) {
+        activeBtn.className = 'len-btn py-2 px-3 rounded-xl border border-indigo-500/50 bg-indigo-600 text-white font-semibold text-xs transition-all';
+      }
+    }
+
+    function setDifficulty(diff) {
+      currentDifficulty = diff;
+      localStorage.setItem('wordzap_pref_diff', diff);
+      document.querySelectorAll('.diff-btn').forEach(btn => {
+        btn.className = 'diff-btn flex-1 py-2 px-3 rounded-xl font-semibold text-xs border border-slate-700 bg-slate-800 text-slate-300 transition-all';
+      });
+      const activeBtn = document.getElementById(`diff-${diff}`);
+      if (activeBtn) {
+        if (diff === 'easy') activeBtn.className = 'diff-btn flex-1 py-2 px-3 rounded-xl font-semibold text-xs border border-emerald-500/50 bg-emerald-600 text-white transition-all';
+        if (diff === 'medium') activeBtn.className = 'diff-btn flex-1 py-2 px-3 rounded-xl font-semibold text-xs border border-indigo-500/50 bg-indigo-600 text-white transition-all';
+        if (diff === 'hard') activeBtn.className = 'diff-btn flex-1 py-2 px-3 rounded-xl font-semibold text-xs border border-rose-500/50 bg-rose-600 text-white transition-all';
+      }
+    }
+
+    // Feature 4: Power-Ups Logic
+    function updatePowerUpUI() {
+      document.getElementById('pw-shield-count').innerText = powerUps.shield;
+      document.getElementById('pw-freeze-count').innerText = powerUps.freeze;
+      document.getElementById('pw-bomb-count').innerText = powerUps.bomb;
+      document.getElementById('pw-double-count').innerText = powerUps.double;
+
+      document.getElementById('pw-shield').disabled = powerUps.shield <= 0;
+      document.getElementById('pw-freeze').disabled = powerUps.freeze <= 0;
+      document.getElementById('pw-bomb').disabled = powerUps.bomb <= 0;
+      document.getElementById('pw-double').disabled = powerUps.double <= 0;
+    }
+
+    function awardPowerUpByStreak(s) {
+      if (s > 0 && s % 5 === 0) {
+        const types = ['shield', 'freeze', 'bomb', 'double'];
+        const chosen = types[Math.floor(Math.random() * types.length)];
+        powerUps[chosen]++;
+        updatePowerUpUI();
+        playSound('powerup');
+      }
+    }
+
+    function usePowerUp(type) {
+      if (!isPlaying || powerUps[type] <= 0) return;
+
+      powerUps[type]--;
+      updatePowerUpUI();
+      playSound('powerup');
+
+      const statusBox = document.getElementById('active-powerup-status');
+
+      if (type === 'shield') {
+        isShieldActive = true;
+        if (statusBox) {
+          statusBox.innerHTML = `<i class="fa-solid fa-shield-halved text-cyan-400"></i> Bouclier Actif`;
+          statusBox.classList.remove('hidden');
+        }
+      } else if (type === 'freeze') {
+        isFreezeActive = true;
+        if (statusBox) {
+          statusBox.innerHTML = `<i class="fa-solid fa-snowflake text-indigo-400"></i> Temps Gelé (5s)`;
+          statusBox.classList.remove('hidden');
+        }
+        setTimeout(() => {
+          isFreezeActive = false;
+          if (statusBox) statusBox.classList.add('hidden');
+        }, 5000);
+      } else if (type === 'bomb') {
+        const input = document.getElementById('jeu-input');
+        if (input) {
+          input.value = currentWord;
+          renderWordDisplay(currentWord);
+          validateWord();
+        }
+      } else if (type === 'double') {
+        isDoubleScoreActive = true;
+        if (statusBox) {
+          statusBox.innerHTML = `<i class="fa-solid fa-bolt text-amber-400"></i> Score x2 Actif (10s)`;
+          statusBox.classList.remove('hidden');
+        }
+        setTimeout(() => {
+          isDoubleScoreActive = false;
+          if (statusBox) statusBox.classList.add('hidden');
+        }, 10000);
+      }
+    }
+
+    function saveActiveGameState() {
+      if (!isPlaying) return;
+      const state = {
+        currentGameMode,
+        currentWordLengthFilter,
+        currentDifficulty,
+        currentWord,
+        score,
+        streak,
+        maxStreak,
+        totalKeystrokes,
+        correctKeystrokes,
+        lives,
+        elapsedTimeInSeconds,
+        usedWords: Array.from(usedWords),
+        categoryTurn,
+        powerUps,
+        isShieldActive,
+        isFreezeActive,
+        isDoubleScoreActive,
+        inputValue: document.getElementById('jeu-input')?.value || ''
+      };
+      localStorage.setItem('wordzap_active_game', JSON.stringify(state));
+    }
+
+    function checkSavedGameBanner() {
+      const saved = localStorage.getItem('wordzap_active_game');
+      const banner = document.getElementById('resume-banner');
+      if (!banner) return;
+
+      if (saved && !isPlaying) {
+        try {
+          const data = JSON.parse(saved);
+          const modeLabels = { classic: 'Classique', sprint: 'Sprint 60s', sudden: 'Mort Subite', zen: 'Mode Zen' };
+          const infoElem = document.getElementById('resume-info');
+          if (infoElem) {
+            infoElem.innerText = `${modeLabels[data.currentGameMode] || 'Classique'} — ${data.score} mot${data.score > 1 ? 's' : ''} | ${formatTime(data.elapsedTimeInSeconds || 0)}`;
+          }
+          banner.classList.remove('hidden');
+        } catch (e) {
+          banner.classList.add('hidden');
+        }
+      } else {
+        banner.classList.add('hidden');
+      }
+    }
+
+    function resumeGame() {
+      const saved = localStorage.getItem('wordzap_active_game');
+      if (!saved) return;
+
+      try {
+        const data = JSON.parse(saved);
+        currentGameMode = data.currentGameMode || 'classic';
+        currentWordLengthFilter = data.currentWordLengthFilter || 'all';
+        currentDifficulty = data.currentDifficulty || 'medium';
+
+        setGameMode(currentGameMode);
+        setWordLengthFilter(currentWordLengthFilter);
+        setDifficulty(currentDifficulty);
+
+        score = data.score || 0;
+        streak = data.streak || 0;
+        maxStreak = data.maxStreak || 0;
+        totalKeystrokes = data.totalKeystrokes || 0;
+        correctKeystrokes = data.correctKeystrokes || 0;
+        lives = data.lives || 5;
+        elapsedTimeInSeconds = data.elapsedTimeInSeconds || 0;
+        categoryTurn = data.categoryTurn || 0;
+        currentWord = data.currentWord || 'mot';
+        powerUps = data.powerUps || { shield: 0, freeze: 0, bomb: 0, double: 0 };
+        isShieldActive = !!data.isShieldActive;
+        isFreezeActive = !!data.isFreezeActive;
+        isDoubleScoreActive = !!data.isDoubleScoreActive;
+
+        usedWords.clear();
+        if (Array.isArray(data.usedWords)) {
+          data.usedWords.forEach(w => usedWords.add(w));
+        }
+
+        isPlaying = true;
+        startTime = Date.now() - (elapsedTimeInSeconds * 1000);
+
+        document.getElementById('lobby-screen').classList.add('hidden');
+        document.getElementById('game-screen').classList.remove('hidden');
+        document.getElementById('resume-banner').classList.add('hidden');
+        setDomText('score-val', score);
+        setDomText('streak-val', streak + '🔥');
+        
+        const elapsedMins = elapsedTimeInSeconds / 60;
+        const wpm = elapsedMins > 0 ? Math.round((totalKeystrokes / 5) / elapsedMins) : 0;
+        setDomText('wpm-val', wpm);
+
+        updatePowerUpUI();
+        renderLives();
+
+        const statusBox = document.getElementById('active-powerup-status');
+        if (statusBox) {
+          if (isShieldActive) {
+            statusBox.innerHTML = `<i class="fa-solid fa-shield-halved text-cyan-400"></i> Bouclier Actif`;
+            statusBox.classList.remove('hidden');
+          } else if (isFreezeActive) {
+            statusBox.innerHTML = `<i class="fa-solid fa-snowflake text-indigo-400"></i> Temps Gelé`;
+            statusBox.classList.remove('hidden');
+          } else if (isDoubleScoreActive) {
+            statusBox.innerHTML = `<i class="fa-solid fa-bolt text-amber-400"></i> Score x2 Actif`;
+            statusBox.classList.remove('hidden');
+          } else {
+            statusBox.classList.add('hidden');
+          }
+        }
+
+        stopTimer();
+        startTimer();
+
+        const input = document.getElementById('jeu-input');
+        if (input) {
+          input.value = data.inputValue || '';
+          renderWordDisplay(input.value);
+          input.focus();
+        }
+
+      } catch (e) {
+        discardSavedGame();
+      }
+    }
+
+    function discardSavedGame() {
+      localStorage.removeItem('wordzap_active_game');
+      checkSavedGameBanner();
+    }
+
+    function startGame() {
+      localStorage.removeItem('wordzap_active_game');
+      
+      score = 0;
+      streak = 0;
+      maxStreak = 0;
+      totalKeystrokes = 0;
+      correctKeystrokes = 0;
+      
+      if (currentGameMode === 'sudden') lives = 1;
+      else lives = 5;
+
+      powerUps = { shield: 0, freeze: 0, bomb: 0, double: 0 };
+      isShieldActive = false;
+      isFreezeActive = false;
+      isDoubleScoreActive = false;
+
+      isPlaying = true;
+      startTime = Date.now();
+      lastErrorLength = 0;
+      usedWords.clear();
+
+      document.getElementById('lobby-screen').classList.add('hidden');
+      document.getElementById('resume-banner').classList.add('hidden');
+      document.getElementById('game-screen').classList.remove('hidden');
+      
+      const modeTag = document.getElementById('mode-display-tag');
+      const modeNames = { classic: 'Classique', sprint: 'Sprint 60s', sudden: 'Mort Subite', zen: 'Mode Zen' };
+      if (modeTag) modeTag.innerText = modeNames[currentGameMode];
+
+      setDomText('score-val', '0');
+      setDomText('streak-val', '0🔥');
+      setDomText('wpm-val', '0');
+
+      updatePowerUpUI();
+      renderLives();
+      startTimer();
+      nextWord();
+      saveActiveGameState();
+    }
+
+    function startTimer() {
+      stopTimer();
+      if (currentGameMode === 'sprint') {
+        elapsedTimeInSeconds = 60;
+        setDomText('timer-val', "01:00");
+      } else {
+        elapsedTimeInSeconds = 0;
+        setDomText('timer-val', "00:00");
+      }
+
+      gameTimerInterval = setInterval(() => {
+        if (!isPlaying) return;
+
+        if (!isFreezeActive) {
+          if (currentGameMode === 'sprint') {
+            elapsedTimeInSeconds--;
+            setDomText('timer-val', formatTime(elapsedTimeInSeconds));
+            if (elapsedTimeInSeconds <= 0) {
+              endGame("Temps écoulé ! Sprint 60s terminé !");
+              return;
+            }
+          } else {
+            elapsedTimeInSeconds++;
+            setDomText('timer-val', formatTime(elapsedTimeInSeconds));
+          }
+        }
+        saveActiveGameState();
+      }, 1000);
+    }
+
+    function endGame(reason) {
+      isPlaying = false;
+      stopTimer();
+      localStorage.removeItem('wordzap_active_game');
+      playSound('gameover');
+
+      const durationSec = currentGameMode === 'sprint' ? 60 : (elapsedTimeInSeconds > 0 ? elapsedTimeInSeconds : 1);
+      const elapsedMinutes = durationSec / 60;
+      const wpm = Math.round((totalKeystrokes / 5) / elapsedMinutes);
+      const accuracy = totalKeystrokes > 0 ? Math.round((correctKeystrokes / totalKeystrokes) * 100) : 100;
+
+      document.getElementById('gameover-reason').innerText = reason;
+      document.getElementById('final-summary').innerText = `${score} mot${score > 1 ? 's' : ''} tapé${score > 1 ? 's' : ''}`;
+      document.getElementById('final-wpm').innerText = wpm;
+      document.getElementById('final-duration').innerText = `${durationSec}s`;
+      document.getElementById('final-accuracy').innerText = accuracy + '%';
+      document.getElementById('final-streak').innerText = maxStreak;
+
+      saveHighScore(score, wpm, durationSec);
+      updatePlayerStats(currentGameMode, currentDifficulty, score, wpm, totalKeystrokes, correctKeystrokes, maxStreak, durationSec);
+
+      document.getElementById('gameover-modal').classList.remove('hidden');
+    }
+    function createEmptyStatsV3() {
+      const modes = ['classic', 'sprint', 'sudden', 'zen'];
+      const diffs = ['easy', 'medium', 'hard'];
+      const res = {};
+      modes.forEach(m => {
+        res[m] = {};
+        diffs.forEach(d => {
+          res[m][d] = { games: 0, words: 0, maxWpm: 0, bestScore: 0, maxStreak: 0, totalTimeSec: 0, totalKeystrokes: 0, correctKeystrokes: 0 };
+        });
+      });
+      return res;
+    }
+
+    function getStatsData() {
+      let stats = JSON.parse(localStorage.getItem('wordzap_stats_v3') || 'null');
+      if (!stats) {
+        stats = createEmptyStatsV3();
+        const v2 = JSON.parse(localStorage.getItem('wordzap_stats_v2') || 'null');
+        if (v2) {
+          ['easy', 'medium', 'hard'].forEach(d => {
+            if (v2[d]) stats.classic[d] = { ...v2[d] };
+          });
+        }
+      }
+      return stats;
+    }
+
+    function updatePlayerStats(mode, diff, scoreVal, wpmVal, keystrokes, correctKeys, streakVal, durationSec) {
+      let stats = getStatsData();
+
+      if (!stats[mode]) stats[mode] = {};
+      if (!stats[mode][diff]) {
+        stats[mode][diff] = { games: 0, words: 0, maxWpm: 0, bestScore: 0, maxStreak: 0, totalTimeSec: 0, totalKeystrokes: 0, correctKeystrokes: 0 };
+      }
+
+      const d = stats[mode][diff];
+      d.games += 1;
+      d.words += scoreVal;
+      d.maxWpm = Math.max(d.maxWpm, wpmVal);
+      d.bestScore = Math.max(d.bestScore, scoreVal);
+      d.maxStreak = Math.max(d.maxStreak, streakVal);
+      d.totalTimeSec += durationSec;
+      d.totalKeystrokes += keystrokes;
+      d.correctKeystrokes += correctKeys;
+
+      localStorage.setItem('wordzap_stats_v3', JSON.stringify(stats));
+    }
+
+    function setStatsModeFilter(mode) {
+      currentStatsModeFilter = mode;
+      document.querySelectorAll('.stat-mode-btn').forEach(btn => {
+        btn.className = 'stat-mode-btn py-1.5 px-1 rounded-lg text-center text-slate-400 hover:text-white transition-all text-[11px] font-bold';
+      });
+      const activeBtn = document.getElementById(`stat-mode-${mode}`);
+      if (activeBtn) {
+        activeBtn.className = 'stat-mode-btn py-1.5 px-1 rounded-lg text-center bg-rose-600 text-white transition-all text-[11px] font-bold';
+      }
+      renderPlayerStatsDisplay();
+    }
+
+    function setStatsDiffFilter(diff) {
+      currentStatsDiffFilter = diff;
+      document.querySelectorAll('.stat-diff-btn').forEach(btn => {
+        btn.className = 'stat-diff-btn py-1.5 px-1 rounded-lg text-center text-slate-400 hover:text-white transition-all text-[11px] font-bold';
+      });
+      const activeBtn = document.getElementById(`stat-diff-${diff}`);
+      if (activeBtn) {
+        activeBtn.className = 'stat-diff-btn py-1.5 px-1 rounded-lg text-center bg-indigo-600 text-white transition-all text-[11px] font-bold';
+      }
+      renderPlayerStatsDisplay();
+    }
+
+    function renderPlayerStatsDisplay() {
+      const stats = getStatsData();
+      let aggregated = { games: 0, words: 0, maxWpm: 0, bestScore: 0, maxStreak: 0, totalTimeSec: 0, totalKeystrokes: 0, correctKeystrokes: 0 };
+
+      const modesToIterate = currentStatsModeFilter === 'all' ? ['classic', 'sprint', 'sudden', 'zen'] : [currentStatsModeFilter];
+      const diffsToIterate = currentStatsDiffFilter === 'all' ? ['easy', 'medium', 'hard'] : [currentStatsDiffFilter];
+
+      modesToIterate.forEach(m => {
+        diffsToIterate.forEach(d => {
+          if (stats[m] && stats[m][d]) {
+            const item = stats[m][d];
+            aggregated.games += item.games;
+            aggregated.words += item.words;
+            aggregated.maxWpm = Math.max(aggregated.maxWpm, item.maxWpm);
+            aggregated.bestScore = Math.max(aggregated.bestScore, item.bestScore);
+            aggregated.maxStreak = Math.max(aggregated.maxStreak, item.maxStreak);
+            aggregated.totalTimeSec += item.totalTimeSec;
+            aggregated.totalKeystrokes += item.totalKeystrokes;
+            aggregated.correctKeystrokes += item.correctKeystrokes;
+          }
+        });
+      });
+
+      const accuracy = aggregated.totalKeystrokes > 0 
+        ? Math.round((aggregated.correctKeystrokes / aggregated.totalKeystrokes) * 100) 
+        : 100;
+
+      const avgTimePerGame = aggregated.games > 0 
+        ? Math.round(aggregated.totalTimeSec / aggregated.games) 
+        : 0;
+
+      setDomText('stat-games', aggregated.games);
+      setDomText('stat-words', aggregated.words);
+      setDomText('stat-wpm', `${aggregated.maxWpm} <span class="text-xs font-normal">WPM</span>`, true);
+      setDomText('stat-avg-time', `${avgTimePerGame}s`);
+      setDomText('stat-accuracy', accuracy + '%');
+      setDomText('stat-best-score', aggregated.bestScore);
+      setDomText('stat-max-streak', aggregated.maxStreak + ' 🔥');
+    }
+
+    function showPlayerStats() {
+      setStatsModeFilter(currentStatsModeFilter);
+      setStatsDiffFilter(currentStatsDiffFilter);
+      document.getElementById('stats-modal').classList.remove('hidden');
+    }
+
+    function closeStatsModal() {
+      document.getElementById('stats-modal').classList.add('hidden');
+    }
+
+    function resetPlayerStats() {
+      localStorage.removeItem('wordzap_stats_v3');
+      localStorage.removeItem('wordzap_stats_v2');
+      renderPlayerStatsDisplay();
+    }
+
+    function closeGameOver() {
+      document.getElementById('gameover-modal').classList.add('hidden');
+    }
+
+    function saveHighScore(scoreVal, wpmVal, durationSec) {
+      let scores = JSON.parse(localStorage.getItem('typing_highscores') || '[]');
+      scores.push({
+        score: scoreVal,
+        wpm: wpmVal,
+        duration: durationSec,
+        diff: currentDifficulty,
+        mode: currentGameMode,
+        date: new Date().toLocaleDateString()
+      });
+      scores.sort((a, b) => b.score - a.score || b.wpm - a.wpm);
+      scores = scores.slice(0, 5);
+      localStorage.setItem('typing_highscores', JSON.stringify(scores));
+    }
+
+    function showHighScores() {
+      const modal = document.getElementById('highscores-modal');
+      const list = document.getElementById('highscores-list');
+      const scores = JSON.parse(localStorage.getItem('typing_highscores') || '[]');
+
+      if (scores.length === 0) {
+        list.innerHTML = `<p class="text-slate-400 text-xs text-center py-4">Aucun score enregistré pour l'instant.</p>`;
+      } else {
+        list.innerHTML = scores.map((s, idx) => `
+          <div class="flex justify-between items-center bg-slate-900/60 p-3 rounded-xl border border-slate-700/50">
+            <div class="flex items-center gap-3">
+              <span class="font-bold text-amber-400 text-sm">#${idx + 1}</span>
+              <div>
+                <p class="text-sm font-bold text-white">${s.score} mots <span class="text-xs font-normal text-amber-400">(${s.duration ? s.duration + 's' : '0s'})</span> — <span class="text-xs text-cyan-400 font-semibold">${s.wpm} WPM</span></p>
+                <p class="text-[10px] text-slate-500 uppercase">${s.diff} | ${s.mode || 'Classique'}</p>
+              </div>
+            </div>
+            <span class="text-[10px] text-slate-400">${s.date}</span>
+          </div>
+        `).join('');
+      }
+
+      modal.classList.remove('hidden');
+    }
+
+    function closeHighScores() {
+      document.getElementById('highscores-modal').classList.add('hidden');
+    }
+
+    function clearScores() {
+      localStorage.removeItem('typing_highscores');
+      showHighScores();
+    }
+
+    function resizeCanvas() {
+      if (canvas) {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      }
+    }
+
+    function initParticleCanvas() {
+      canvas = document.getElementById('particle-canvas');
+      if (canvas) {
+        ctx = canvas.getContext('2d');
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+        animateParticles();
+      }
+    }
+
+    function triggerParticles() {
+      if (!canvas || !ctx) return;
+      const themeColors = [themes[currentThemeIndex].primary, themes[currentThemeIndex].secondary, '#38bdf8', '#34d399', '#fbbf24', '#ffffff'];
+      const wordCard = document.getElementById('word-card');
+      if (!wordCard) return;
+
+      wordCard.classList.add('zap-flash');
+      setTimeout(() => wordCard.classList.remove('zap-flash'), 250);
+
+      const rect = wordCard.getBoundingClientRect();
+      const originX = rect.left + rect.width / 2;
+      const originY = rect.top + rect.height / 2;
+
+      particles.push({
+        isRing: true,
+        x: originX,
+        y: originY,
+        radius: 10,
+        maxRadius: 130,
+        color: themes[currentThemeIndex].primary,
+        alpha: 0.9,
+        lineWidth: 6
+      });
+
+      for (let i = 0; i < 35; i++) {
+        const speed = Math.random() * 12 + 3;
+        const angle = Math.random() * Math.PI * 2;
+        particles.push({
+          x: originX,
+          y: originY,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed - 1.5,
+          radius: Math.random() * 5 + 2,
+          color: themeColors[Math.floor(Math.random() * themeColors.length)],
+          alpha: 1,
+          decay: Math.random() * 0.035 + 0.015,
+          glow: true
+        });
+      }
+    }
+
+    function animateParticles() {
+      if (!ctx || !canvas) return;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+
+        if (p.isRing) {
+          p.radius += 8;
+          p.alpha -= 0.04;
+          if (p.alpha <= 0 || p.radius >= p.maxRadius) {
+            particles.splice(i, 1);
+            continue;
+          }
+          ctx.save();
+          ctx.globalAlpha = p.alpha;
+          ctx.strokeStyle = p.color;
+          ctx.shadowBlur = 20;
+          ctx.shadowColor = p.color;
+          ctx.lineWidth = p.lineWidth;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.restore();
+          continue;
+        }
+
+        p.x += p.vx;
+        p.y += p.vy;
+        p.alpha -= p.decay;
+
+        if (p.alpha <= 0) {
+          particles.splice(i, 1);
+          continue;
+        }
+
+        ctx.save();
+        ctx.globalAlpha = p.alpha;
+        ctx.fillStyle = p.color;
+        if (p.glow) {
+          ctx.shadowBlur = 12;
+          ctx.shadowColor = p.color;
+        }
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      requestAnimationFrame(animateParticles);
+    }
+
+    function validateWord() {
+      const ptsToAdd = isDoubleScoreActive ? 2 : 1;
+      score += ptsToAdd;
+      streak++;
+      if (streak > maxStreak) maxStreak = streak;
+
+      awardPowerUpByStreak(streak);
+
+      playSound('success');
+      triggerParticles();
+
+      const elapsedMinutes = (Date.now() - startTime) / 60000;
+      const wpm = elapsedMinutes > 0 ? Math.round((totalKeystrokes / 5) / elapsedMinutes) : 0;
+
+      setDomText('score-val', score);
+      setDomText('streak-val', streak + '🔥');
+      setDomText('wpm-val', wpm);
+
+      const comboBadge = document.getElementById('combo-badge');
+      if (comboBadge) {
+        if (streak >= 3) {
+          setDomText('combo-num', Math.floor(streak / 3) + 1);
+          comboBadge.classList.remove('opacity-0');
+        } else {
+          comboBadge.classList.add('opacity-0');
+        }
+      }
+
+      nextWord();
+      saveActiveGameState();
+    }
+
+    // Event listeners Initialization
+    window.addEventListener('DOMContentLoaded', () => {
+      // Restaurer le thème
+      const savedTheme = localStorage.getItem('wordzap_theme');
+      if (savedTheme !== null) {
+        currentThemeIndex = parseInt(savedTheme, 10) || 0;
+        applyTheme(themes[currentThemeIndex]);
+      }
+
+      // Restaurer les préférences du joueur (Mode, Longueur, Difficulté, Son)
+      const savedMode = localStorage.getItem('wordzap_pref_mode');
+      if (savedMode) setGameMode(savedMode);
+
+      const savedLength = localStorage.getItem('wordzap_pref_length');
+      if (savedLength) setWordLengthFilter(savedLength);
+
+      const savedDiff = localStorage.getItem('wordzap_pref_diff');
+      if (savedDiff) setDifficulty(savedDiff);
+
+      const savedSound = localStorage.getItem('wordzap_sound');
+      if (savedSound !== null) {
+        soundEnabled = savedSound === 'true';
+        updateSoundIcon();
+      }
+
+      updateNetworkStatusUI();
+      loadFullDictionary();
+      checkSavedGameBanner();
+      initParticleCanvas();
+
+      // Enregistrer la partie automatiquement si l'utilisateur ferme ou rafraîchit la page
+      window.addEventListener('beforeunload', () => {
+        saveActiveGameState();
+      });
+
+      const inputElem = document.getElementById('jeu-input');
+      if (inputElem) {
+        inputElem.addEventListener('input', function(e) {
+          if (!isPlaying) return;
+
+          const val = this.value;
+          totalKeystrokes++;
+
+          playSound('key');
+
+          let isCorrectSoFar = true;
+          for (let i = 0; i < val.length; i++) {
+            if (i >= currentWord.length || val[i].toLowerCase() !== currentWord[i].toLowerCase()) {
+              isCorrectSoFar = false;
+              break;
+            }
+          }
+
+          if (isCorrectSoFar) {
+            correctKeystrokes++;
+          } else {
+            if (val.length > lastErrorLength) {
+              if (isShieldActive) {
+                // Absorber l'erreur grâce au bouclier
+                isShieldActive = false;
+                const statusBox = document.getElementById('active-powerup-status');
+                if (statusBox) statusBox.classList.add('hidden');
+                playSound('powerup');
+              } else {
+                if (currentGameMode === 'sudden') {
+                  lives = 0;
+                  renderLives();
+                  endGame("Mort Subite ! Une seule faute est fatale.");
+                  return;
+                } else if (currentGameMode === 'classic') {
+                  lives--;
+                  streak = 0;
+                  setDomText('streak-val', '0🔥');
+                  renderLives();
+                  playSound('error');
+
+                  const card = document.getElementById('word-card');
+                  if (card) {
+                    card.classList.add('shake');
+                    setTimeout(() => card.classList.remove('shake'), 300);
+                  }
+
+                  if (lives <= 0) {
+                    endGame("Vous avez épuisé toutes vos vies !");
+                    return;
+                  }
+                }
+              }
+            }
+          }
+          lastErrorLength = isCorrectSoFar ? 0 : val.length;
+
+          renderWordDisplay(val);
+          saveActiveGameState();
+
+          if (val.toLowerCase() === currentWord.toLowerCase()) {
+            validateWord();
+          }
+        });
+      }
+
+      // Raccourcis clavier pour les Power-ups (1, 2, 3, 4)
+      window.addEventListener('keydown', (e) => {
+        if (!isPlaying) return;
+        if (e.key === '1') usePowerUp('shield');
+        if (e.key === '2') usePowerUp('freeze');
+        if (e.key === '3') usePowerUp('bomb');
+        if (e.key === '4') usePowerUp('double');
+      });
+
+      initPWA();
+    });
+
+    // Gestion PWA et Installation sur Écran d'Accueil
+    let deferredInstallPrompt = null;
+
+    function initPWA() {
+      // Détecter si l'application est déjà lancée depuis l'écran d'accueil
+      const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone || document.referrer.includes('android-app://');
+      
+      if (isStandalone) {
+        const btn = document.getElementById('pwa-install-btn');
+        if (btn) btn.classList.add('hidden');
+        return;
+      }
+
+      // Écouter le prompt d'installation sous Chrome / Android / Desktop
+      window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredInstallPrompt = e;
+        const btn = document.getElementById('pwa-install-btn');
+        if (btn) btn.classList.remove('hidden');
+      });
+
+      window.addEventListener('appinstalled', () => {
+        deferredInstallPrompt = null;
+        const btn = document.getElementById('pwa-install-btn');
+        if (btn) btn.classList.add('hidden');
+      });
+
+      // Afficher le bouton pour Safari / iOS
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+      if (isIOS) {
+        const btn = document.getElementById('pwa-install-btn');
+        if (btn) btn.classList.remove('hidden');
+      }
+
+      // Enregistrer un Service Worker Inline
+      if ('serviceWorker' in navigator) {
+        try {
+          const swCode = `
+            self.addEventListener('install', (e) => self.skipWaiting());
+            self.addEventListener('activate', (e) => e.waitUntil(self.clients.claim()));
+            self.addEventListener('fetch', (e) => {});
+          `;
+          const blob = new Blob([swCode], { type: 'application/javascript' });
+          const swUrl = URL.createObjectURL(blob);
+          navigator.serviceWorker.register(swUrl).catch(err => console.log('SW registration skipped', err));
+        } catch (e) {
+          console.warn('SW Blob non supporté', e);
+        }
+      }
+    }
+
+    function triggerPwaInstall() {
+      if (deferredInstallPrompt) {
+        deferredInstallPrompt.prompt();
+        deferredInstallPrompt.userChoice.then((choiceResult) => {
+          if (choiceResult.outcome === 'accepted') {
+            const btn = document.getElementById('pwa-install-btn');
+            if (btn) btn.classList.add('hidden');
+          }
+          deferredInstallPrompt = null;
+        });
+      } else {
+        const modal = document.getElementById('pwa-guide-modal');
+        if (modal) modal.classList.remove('hidden');
+      }
+    }
+
+    function closePwaGuide() {
+      const modal = document.getElementById('pwa-guide-modal');
+      if (modal) modal.classList.add('hidden');
+    }
+  </script>
+</body>
+</html>
