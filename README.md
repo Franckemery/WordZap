@@ -36,3 +36,35 @@ Ce projet est un projet web autonome (*Single Page Application*). Aucun framewor
 1. Clonez ce dépôt GitHub :
    ```bash
    git clone [https://github.com/votre-pseudo/wordzap.git](https://github.com/votre-pseudo/wordzap.git)
+
+Ouvrez le fichier index.html directement dans votre navigateur web.
+
+### Option 2 : Déploiement en ligne
+- Vous pouvez héberger le projet gratuitement en quelques secondes sur :
+
+- GitHub Pages (Réglez la branche main dans les Settings > Pages de votre dépôt).
+
+- Netlify Drop (Glissez-déposez le dossier contenant index.html).
+
+- Vercel / Render.
+
+## 🎮 Comment Jouer ?
+- Choisissez votre Mode de Jeu, votre Difficulté et la Longueur des Mots.
+
+- Saisissez les mots affichés au centre de l'écran aussi vite et précisément que possible.
+
+- Chaque mot complété augmente votre score et votre Combo.
+
+- Activez vos Bonus/Power-ups accumulés grâce aux raccourcis clavier (1, 2, 3, 4) pour prolonger votre partie.
+
+## 🛠️ Technologies Utilisées
+- HTML5 : Structure de l'application & balises PWA Manifest.
+
+- CSS3 : Animations d'aurore, reflets néon (shimmer), grilles adaptatives et effets de particules.
+
+- JavaScript (Vanilla ES6+) : Gestion du jeu, calcul du WPM, algorithmes de filtrage de dictionnaire, audio-synthétiseur Web Audio API.
+
+- Service Worker & LocalStorage : Mémorisation locale des données et fonctionnement 100% hors-ligne.
+
+## 📄 Licence
+Ce projet est distribué sous la licence MIT. Vous êtes libre de le réutiliser, le modifier et le distribuer.
